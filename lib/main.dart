@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'dashboard_page.dart';
+import 'config/config_dev.dart'; 
+import 'config/config_prod.dart'; 
+
 
 void main() {
+  bool isProduction = false; // Remplace par la logique pour déterminer l'environnement
+
+  // ignore: dead_code
+  if (isProduction) {
+    // runApp(MyApp(config: ConfigProd()));
+  
+  } else {
+    /// runApp(MyApp(config: ConfigDev()));
+  }
+
   runApp(const MyApp());
 }
 
