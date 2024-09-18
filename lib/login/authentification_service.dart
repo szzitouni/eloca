@@ -3,8 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/config_dev.dart';  // Assure-toi que ce fichier est correctement importé
 
 class AuthentificationService {
-  final String _baseUrl = Config.URL_API_PROFIL;
-
+  
   // Méthode pour obtenir un token
   Future<void> login(String email, String password) async {
     final url = Uri.parse(Config.URL_TOKEN);

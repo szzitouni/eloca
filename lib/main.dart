@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart';
-import 'dashboard_page.dart';
-import 'config/config_dev.dart'; 
-import 'config/config_prod.dart'; 
+import 'login/login_page.dart';
+import 'dashboard/dashboard_page.dart';
 
 
 void main() {

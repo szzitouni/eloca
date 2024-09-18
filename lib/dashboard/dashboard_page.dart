@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import '../models/gestionnaire.dart';
 
 class DashboardPage extends StatelessWidget {
+
+  final Gestionnaire gestionnaire; // Ajout d'une propriété pour le gestionnaire
+
+  DashboardPage({required this.gestionnaire});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 246, 241, 241),
-      appBar: AppBar(
+      appBar: AppBar( 
         backgroundColor: Colors.white,
         elevation: 0, // Enlève l'ombre sous l'AppBar
         leading: Builder(
           builder: (BuildContext context) => IconButton(
-            icon: Icon(Icons.menu, color: Colors.black), // Icône de menu à gauche
+            icon: const Icon(Icons.menu, color: Colors.black), // Icône de menu à gauche
             onPressed: () {
               Scaffold.of(context).openDrawer(); // Ouvre le drawer
             },
@@ -63,25 +69,24 @@ class DashboardPage extends StatelessWidget {
                 
                 borderRadius: BorderRadius.circular(3),
               ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min, // Ajuste la taille du bouton au contenu
+              child: Row(
+                mainAxisSize: MainAxisSize.min, 
                 children: [
                   // Nom et prénom de la personne
-                  Text(
-                    'Nom Prénom',  // Remplace par le nom et prénom réel
-                    style: TextStyle(
+                   Text(' ${gestionnaire.prenom ?? ''} ${gestionnaire.nom ?? ''}',  
+                    style: const TextStyle(
                       color: Colors.black,  // Couleur du texte
                     ),
                   ),
-                  SizedBox(width: 8), // Espace entre le texte et la flèche
+                  const SizedBox(width: 8), // Espace entre le texte et la flèche
                   // Petite flèche vers le bas
-                  Icon(
+                  const Icon(
                     Icons.arrow_downward_rounded, // Icône flèche vers le bas
                     color: Colors.black,
                   ),
-                  SizedBox(width: 8), // Espace entre l'icône et le texte
+                  const SizedBox(width: 8), // Espace entre l'icône et le texte
                   // Icône d'utilisateur à gauche
-                  Icon(
+                  const Icon(
                     Icons.person_rounded, // Icône utilisateur
                     color: Colors.black,
                   ),
