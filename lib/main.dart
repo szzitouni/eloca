@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mon_app/screens/ResponsiveMenuScreen.dart';
 import 'login/login_page.dart';
 import 'dashboard/dashboard_page.dart';
 
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
+      home: ResponsiveMenuScreen(), // Remplacez par votre ResponsiveMenuScreen
       initialRoute: '/login',
       routes: {
         '/login': (context) => LoginPage(),

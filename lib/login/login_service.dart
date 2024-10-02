@@ -6,7 +6,7 @@ import '../models/connexionDTO.dart';
 import '../models/offerDTO.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // me servira plus tard pour les tokens
-import '../ErrorScreen.dart';
+import '../screens/ErrorScreen.dart';
 
 class LoginService {
 
