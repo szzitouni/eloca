@@ -4,15 +4,12 @@ import 'dashboard/dashboard_page.dart';
 
 
 void main() {
-  bool isProduction = false; // Remplace par la logique pour déterminer l'environnement
-
-  // ignore: dead_code
-  if (isProduction) {
-    // runApp(MyApp(config: ConfigProd()));
-  
-  } else {
-    /// runApp(MyApp(config: ConfigDev()));
-  }
+  // bool isProduction = false; // Remplace par la logique pour déterminer l'environnement
+  // if (isProduction) {
+  //   runApp(MyApp(config: ConfigProd()));
+  // } else {
+  //   runApp(MyApp(config: ConfigDev()));
+  // } COMEBACK 
 
   runApp(const MyApp());
 }
@@ -39,7 +36,7 @@ class MyApp extends StatelessWidget {
         //
         // Notice that the counter didn't reset back to zero; the application
         // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
+        // restartS instead.
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
