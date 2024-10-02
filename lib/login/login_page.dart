@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'authentification_service.dart';
+import 'package:mon_app/models/offerDTO.dart';
+import 'login_service.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -15,12 +16,17 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
   // Instance du service d'authentification
-  final AuthentificationService _authService = AuthentificationService();
+  final LoginService _loginService = LoginService();
 
   // FocusNode pour gérer le focus entre les champs
   final FocusNode _passwordFocusNode = FocusNode();
 
-  // Soumission du formulaire
+  late OfferDTO offer;
+  
+  get gestionnaire => null;
+ 
+
+// Soumission du formulaire
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       // Récupération des valeurs saisies
@@ -29,15 +35,10 @@ class _LoginPageState extends State<LoginPage> {
 
       try {
         // Appel de la méthode login dans AuthentificationService
-        await _authService.login(email, password);
-
-        // Redirection vers le dashboard si succès
-        Navigator.pushReplacementNamed(context, '/dashboard');
-
-        // Message de succès
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Connexion réussie')),
-        );
+        await _loginService.loginV3(context, email, password);
+        
+       
+       
       } catch (e) {
         // Gestion des erreurs de connexion
         ScaffoldMessenger.of(context).showSnackBar(
@@ -46,6 +47,8 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   // Logo de l'application
                   Image.asset(
-                    'assets/images/eloca.png', // Chemin du logo
+                    'assets/images/eloca.png', 
                     height: 100, // Taille du logo
                   ),
                   SizedBox(height: 30), // Espacement
@@ -82,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                         // Champ email
                         TextFormField(
                           controller: _emailController, // Associer le contrôleur
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Email',
                             border: OutlineInputBorder(),
                           ),

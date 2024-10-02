@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/gestionnaire.dart';
 
 class DashboardPage extends StatelessWidget {
 
-  final Gestionnaire gestionnaire; // Ajout d'une propriété pour le gestionnaire
 
-  DashboardPage({required this.gestionnaire});
+  DashboardPage();
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +22,7 @@ class DashboardPage extends StatelessWidget {
         ),
         title: Center(
           child: Image.asset(
-            'assets/images/eloca.png',  // Remplace par le chemin de ton logo
+            'assets/images/eloca.png',
             height: 55,  // Taille du logo
           ),
         ),
@@ -32,13 +30,10 @@ class DashboardPage extends StatelessWidget {
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'profil') {
-                // Action pour "Mon profil"
                 print('Mon profil sélectionné');
               } else if (value == 'CGU') {
-                // Action pour "Mentions légales et CGU"
                 print('Mentions légales et CGU sélectionnées');
               } else if (value == 'Déconnexion') {
-                // Action pour "Déconnexion"
                 Navigator.pushReplacementNamed(context, '/login');
               }
             },
@@ -73,7 +68,8 @@ class DashboardPage extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min, 
                 children: [
                   // Nom et prénom de la personne
-                   Text(' ${gestionnaire.prenom ?? ''} ${gestionnaire.nom ?? ''}',  
+                   ///Text(' ${gestionnaire.prenom ?? ''} ${gestionnaire.nom ?? ''}',  
+                   Text(' ''}',  
                     style: const TextStyle(
                       color: Colors.black,  // Couleur du texte
                     ),
