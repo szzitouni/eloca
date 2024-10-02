@@ -64,25 +64,25 @@ class DashboardPage extends StatelessWidget {
                 
                 borderRadius: BorderRadius.circular(3),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min, 
                 children: [
                   // Nom et prénom de la personne
-                   ///Text(' ${gestionnaire.prenom ?? ''} ${gestionnaire.nom ?? ''}',  
+                   ///Text(' ${gestionnaire.prenom ?? }'' ${gestionnaire.nom ?? }',  
                    Text(' ''}',  
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.black,  // Couleur du texte
                     ),
                   ),
-                  const SizedBox(width: 8), // Espace entre le texte et la flèche
+                  SizedBox(width: 8), // Espace entre le texte et la flèche
                   // Petite flèche vers le bas
-                  const Icon(
+                  Icon(
                     Icons.arrow_downward_rounded, // Icône flèche vers le bas
                     color: Colors.black,
                   ),
-                  const SizedBox(width: 8), // Espace entre l'icône et le texte
+                  SizedBox(width: 8), // Espace entre l'icône et le texte
                   // Icône d'utilisateur à gauche
-                  const Icon(
+                  Icon(
                     Icons.person_rounded, // Icône utilisateur
                     color: Colors.black,
                   ),
