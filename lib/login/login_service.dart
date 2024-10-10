@@ -241,12 +241,8 @@ Future<void> logout() async {
         print("Appel de la méthode login pour $email");
         await login(email, password);
         // Redirection vers le dashboard si l'authentification est réussie
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DashboardPage(),
-          ),
-        );
+        Navigator.pushReplacementNamed(context, '/dashboard');
+
         break;
 
       case SiteEnum.TwentyCampus:
