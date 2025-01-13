@@ -1,37 +1,56 @@
 import 'package:flutter/material.dart';
-import '../../models/adresse.dart';
+import 'package:mon_app/login/auth_service.dart';
+import 'package:mon_app/login/login_service.dart';
+import 'package:mon_app/models/userContext.dart'; // Assurez-vous que AuthService est bien importé
 
-class Header extends StatelessWidget implements PreferredSizeWidget {
+class Header extends StatefulWidget {
   final String title;
   final bool showMenuButton;
-  final String nom;
-  final String prenom;
-  // final Adresse adresse; COMEBACK
+  //final ConnexionDTO connexionDTO; // Injection de ConnexionDTO
 
-  const Header({
-    Key? key,
+  Header({
     required this.title,
     required this.showMenuButton,
-    required this.nom,
-    required this.prenom,
-    //required this.adresse, COMEBACK
-  }) : super(key: key);
+    //required this.connexionDTO,
+  });
+
+  @override
+  _HeaderState createState() => _HeaderState();
+}
+
+class _HeaderState extends State<Header> {
+  final authentificationService = AuthentificationService();
+  UserContext? userContext; // Stocker les données utilisateur
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserContext();
+  }
+
+  Future<void> loadUserContext() async {
+    final context = await getUserContext();
+    setState(() {
+      userContext = context;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0, // Enlève l'ombre sous l'AppBar
-      leading: showMenuButton
+      leading: widget.showMenuButton
           ? Builder(
               builder: (BuildContext context) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.black), // Icône de menu
+                icon: const Icon(Icons.menu, color: Colors.black),
+                tooltip: 'Ouvrir le menu', // Tooltip pour accessibilité
                 onPressed: () {
-                  Scaffold.of(context).openDrawer(); // Ouvre le drawer
+                  Scaffold.of(context).openDrawer();
                 },
               ),
             )
-          : null, // Si showMenuButton est faux, pas de menu.
+          : null,
 
       title: Center(
         child: Image.asset(
@@ -39,18 +58,28 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
           height: 55, // Taille du logo
         ),
       ),
-      
+
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 10),
           child: PopupMenuButton<String>(
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'profil') {
-                print('Mon profil sélectionné');
+                Navigator.pushReplacementNamed(context, '/profil');
               } else if (value == 'CGU') {
                 Navigator.pushReplacementNamed(context, '/cgu');
               } else if (value == 'Déconnexion') {
-                Navigator.pushReplacementNamed(context, '/login');
+                try {
+                  // Révoquer le token et rediriger vers la page de login
+                  await authentificationService.logout();
+                  Navigator.pushReplacementNamed(context, '/login');
+                } catch (error) {
+                  // Afficher un message d'erreur si la révocation échoue
+                  debugPrint('Erreur lors de la déconnexion : $error');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Impossible de se déconnecter. Veuillez réessayer.')),
+                  );
+                }
               }
             },
             itemBuilder: (BuildContext context) => [
@@ -79,17 +108,18 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Nom et prénom de la personne
                   Text(
-                    '$prenom $nom', // Affichage du prénom et du nom
+                    userContext != null
+                        ? '${userContext?.currentContext?.prenom.toString()} ${userContext?.currentContext?.nom.toString()}'
+                        : 'Utilisateur inconnu', // Affichage par défaut si les données sont absentes
                     style: const TextStyle(
                       color: Colors.black, // Couleur du texte
                       fontSize: 16,
                     ),
                   ),
-                  const SizedBox(width: 8), // Espace 
+                  const SizedBox(width: 8), // Espace
 
-                   // Petite flèche vers le bas
+                  // Petite flèche vers le bas
                   const Icon(
                     Icons.arrow_drop_down, // Icône flèche vers le bas
                     color: Colors.black,
@@ -101,11 +131,6 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
                     Icons.person_rounded, // Icône utilisateur
                     color: Colors.black,
                   ),
-                  
-
-                  
-
-                 
                 ],
               ),
             ),
@@ -115,6 +140,8 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  @override
-  Size get preferredSize => const Size.fromHeight(60);
+  Future<UserContext?> getUserContext() {
+    return authentificationService.userContext;
+  }
+
 }

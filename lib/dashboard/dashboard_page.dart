@@ -1,248 +1,142 @@
 import 'package:flutter/material.dart';
-import '../components/header/header.dart'; // Import du Header
+import 'package:mon_app/login/auth_service.dart';
+import 'package:mon_app/models/gestionnaire.dart';
+import 'package:mon_app/dashboard/dashboard_service.dart'; // Service de gestionnaire avec Dio
+import '../components/header.dart'; // Import du Header
+import '../components/volet.dart'; // Import du Volet
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   DashboardPage();
 
   @override
+  _DashboardPageState createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+final _dashboardService = DashboardService(); 
+final _authentificationService = AuthentificationService();
+
+  Gestionnaire? gestionnaire;
+  String solde = '...';
+  String signalementStatut = 'Aucun signalement';
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  // Méthode pour charger les données
+  Future<void> _fetchData() async {
+    try {
+      final idProfil = await _authentificationService.getIdProfil(); // Récupère l'id de profil
+      // print("idProfil récupéré : $idProfil"); CHECK Bon id
+
+
+      if (idProfil > 0) {
+        final fetchedGestionnaire = await _dashboardService.getGestionnaire(idProfil); // Récupère le gestionnaire
+        if (fetchedGestionnaire != null) {
+          print("Gestionnaire récupéré : ${fetchedGestionnaire.nom}");
+        } else {
+          print("Aucun gestionnaire trouvé pour idProfil : $idProfil");
+        }
+        setState(() {
+          gestionnaire = fetchedGestionnaire;
+          solde = '150.00 €';
+          signalementStatut = '2 signalements en attente';
+          isLoading = false;
+        });
+      } else {
+        print('idProfil invalide.');
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Erreur lors du chargement des données : $e';
+        isLoading = false;
+      });
+      showErrorDialog(e); // Affiche l'erreur dans un dialogue
+    }
+  }
+
+  // Méthode pour afficher un dialogue d'erreur
+  void showErrorDialog(dynamic error) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Erreur'),
+          content: Text(error.toString()),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Fermer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Affiche un indicateur de chargement si les données sont en cours de récupération
+    if (isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    // Affiche un message d'erreur si une erreur s'est produite
+    if (errorMessage != null) {
+      return Center(child: Text(errorMessage!));
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         bool isLargeScreen = constraints.maxWidth > 800;
 
         return Scaffold(
-          backgroundColor: const Color.fromARGB(255, 246, 241, 241),
+          backgroundColor: const Color(0xFFF6F1F1),
           body: Row(
             children: [
-              // Barre latérale (Drawer) pour les grands écrans
-              if (isLargeScreen)
-                Container(
-                  width: 250, // Largeur fixe pour le drawer
-                  decoration: BoxDecoration(
-                    color: Colors.white, // Couleur de fond du drawer
-                    borderRadius: const BorderRadius.only(
-                      topRight: Radius.circular(10),
-                      bottomRight: Radius.circular(10),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3), // Ombre sous le drawer
-                      ),
-                    ],
-                  ),
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      const DrawerHeader(
-                        decoration: BoxDecoration(
-                          color: Colors.blue, // Couleur de l'en-tête du drawer
-                        ),
-                        child: Text(
-                          'Type de l\'appartement \nNuméro de l\'appartement \nRue \nCode Postal',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('Acceuil'),
-                        onTap: () {
-                          // Action 
-                        },
-                      ),
-                      ListTile(
-                        title: const Text('Compte'),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/account');
-                        },
-                        
-                      ),
-                      ListTile(
-                        title: const Text('Messages'),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/messages');
-                        },
-                        
-                      ),
-                      ListTile(
-                        title: const Text('Signalements'),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/reports');
-                        },
-                        
-                      ),
-                      ListTile(
-                        title: const Text('Documents'),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/documents');
-                        },
-                        
-                      ),
-                      ListTile(
-                        title: const Text('Assurance'),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/assurance');
-                        },
-                        
-                      ),
-                    ],
-                  ),
-                ),
-
+              if (isLargeScreen) Volet(),
               Expanded(
                 child: Column(
                   children: [
-                    // Le Header utilise un bouton pour ouvrir le drawer
                     Header(
-                      title: '',
+                      title: 'Tableau de bord',
                       showMenuButton: !isLargeScreen,
-                      nom: 'ZITOUNI',
-                      prenom: 'Sarah',
-                    ), // Le Header est toujours visible
-
+                    ),
                     Expanded(
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Colonne principale pour les sections "Mon Compte" et "Signalements"
                           Expanded(
+                            flex: 2,
                             child: ListView(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(16.0),
                               children: [
-                                // Si l'écran est petit,  "Contacter mon gestionnaire" est ici
-                                if (!isLargeScreen)
-                                  _contacterMonGestionnaire(context),
-
-                                // Section Mon Compte
-                                Card(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                                MonCompteWidget(solde: solde),
+                                const SizedBox(height: 16),
+                                SignalementsWidget(statut: signalementStatut),
+                                if (!isLargeScreen && gestionnaire != null)
+                                  ContacterGestionnaireWidget(
+                                    gestionnaire: gestionnaire!,
                                   ),
-                                  elevation: 5,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'MON COMPTE',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        const Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              'Solde :',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black54,
-                                              ),
-                                            ),
-                                            Text(
-                                              '0.0', // Remplace par ta logique pour le solde
-                                              style: TextStyle(
-                                                fontSize: 22,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.green, // Valeur par défaut
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        const Text(
-                                          'Vous payez par prélèvement automatique',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Center(
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              // Action pour afficher les détails du compte
-                                            },
-                                            child: Text('Voir le détail du compte'),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(5),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 16), // Espacement entre les sections
-
-                                // Section Signalements
-                                Card(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  elevation: 5,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'SIGNALEMENTS',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        const Text(
-                                          'Aucun signalement',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Center(
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              // Naviguer vers la page de signalements
-                                              Navigator.pushNamed(context, '/reports');
-                                            },
-                                            child: Text('+ Nouveau signalement'),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.blue,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(5),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 16), // Espacement entre les sections
                               ],
                             ),
                           ),
-
-                          // Section "Contacter mon gestionnaire" pour les grands écrans
-                          if (isLargeScreen)
-                            Container(
-                              width: 250, 
-                              height: 500,
-                              child: _contacterMonGestionnaire(context),
+                          if (isLargeScreen && gestionnaire != null)
+                            Expanded(
+                              flex: 1,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: ContacterGestionnaireWidget(
+                                  gestionnaire: gestionnaire!,
+                                ),
+                              ),
                             ),
                         ],
                       ),
@@ -252,127 +146,141 @@ class DashboardPage extends StatelessWidget {
               ),
             ],
           ),
-
-          // Drawer pour petit écran
           drawer: !isLargeScreen
               ? Drawer(
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      const DrawerHeader(
-                        decoration: BoxDecoration(
-                          color: Colors.blue, // Couleur de l'en-tête du drawer
-                        ),
-                        child: Text(
-                          'Type de l\'appartement \nNuméro de l\'appartement \nRue \nCode Postal',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ),
-                       ListTile(
-                        title: const Text('Acceuil'),
-                        onTap: () {
-                          // Action 
-                        },
-                      ),
-                      ListTile(
-                        title: const Text('Compte'),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/account');
-                        },
-                        
-                      ),
-                      ListTile(
-                        title: const Text('Messages'),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/messages');
-                        },
-                        
-                      ),
-                      ListTile(
-                        title: const Text('Signalements'),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/reports');
-                        },
-                        
-                      ),
-                      ListTile(
-                        title: const Text('Documents'),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/documents');
-                        },
-                        
-                      ),
-                      ListTile(
-                        title: const Text('Assurance'),
-                        onTap: () {
-                          Navigator.pushNamed(context, '/assurance');
-                        },
-                        
-                      ),
-                    ],
-                  ),
+                  child: Volet(),
                 )
-              : null, // Pas de Drawer si la taille est grande
+              : null,
         );
       },
     );
   }
+}
 
-  // Fonction pour la section "Contacter mon gestionnaire"
-  Widget _contacterMonGestionnaire(BuildContext context) {
+class DashboardCard extends StatelessWidget {
+  final String title;
+  final Widget child;
+
+  const DashboardCard({required this.title, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       elevation: 5,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'CONTACTER MON GESTIONNAIRE',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Nom : Sid LAAALLOUI',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Email : sid.laalaoui@example.com', // Remplace par l'email réel
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                   Navigator.pushNamed(context, '/messages');
-                },
-                child: Text('Contacter'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-              ),
-            ),
+            child,
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MonCompteWidget extends StatelessWidget {
+  final String solde;
+
+  const MonCompteWidget({required this.solde});
+
+  @override
+  Widget build(BuildContext context) {
+    return DashboardCard(
+      title: 'MON COMPTE',
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Solde :', style: TextStyle(fontSize: 16)),
+              Text(
+                solde,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: double.tryParse(solde.replaceAll('€', '').trim()) != null &&
+                          double.parse(solde.replaceAll('€', '').trim()) < 0
+                      ? Colors.red
+                      : Colors.green,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/account');
+              },
+              child: const Text('Voir le détail du compte'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SignalementsWidget extends StatelessWidget {
+  final String statut;
+
+  const SignalementsWidget({required this.statut});
+
+  @override
+  Widget build(BuildContext context) {
+    return DashboardCard(
+      title: 'SIGNALEMENTS',
+      child: Column(
+        children: [
+          Text(statut, style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 16),
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/reports');
+              },
+              child: const Text('+ Nouveau signalement'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ContacterGestionnaireWidget extends StatelessWidget {
+  final Gestionnaire gestionnaire;
+
+  const ContacterGestionnaireWidget({required this.gestionnaire});
+
+  @override
+  Widget build(BuildContext context) {
+    return DashboardCard(
+      title: 'CONTACTER MON GESTIONNAIRE',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Nom : ${gestionnaire.nom}', style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 8),
+          Text('Email : ${gestionnaire.mail}', style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 16),
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/messages');
+              },
+              child: const Text('Contacter'),
+            ),
+          ),
+        ],
       ),
     );
   }

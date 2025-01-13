@@ -41,4 +41,25 @@ class Adresse {
       'volet7': volet7,
     };
   }
+
+  @override
+  String toString() {
+    // Créer une liste des volets, en remplaçant les volets null par des chaînes vides
+    List<String> volets = [
+      volet1 ?? '',
+      volet2 ?? '',
+      volet3 ?? '',
+      volet4 ?? '',
+      volet5 ?? '',
+      '\n',
+      volet6 ?? '',
+      volet7 ?? '',
+    ];
+    String adresse=volets.where((volet) => volet.isNotEmpty).join(' ');
+    // print ("***********adresse*********\n"); // COMEBACK IF NEDEDED adresse
+    // print(adresse);
+    // Joindre les volets avec un espace ou un autre séparateur
+    return adresse;
+
+  }
 }

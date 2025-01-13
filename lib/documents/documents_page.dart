@@ -2,7 +2,7 @@
 // import '../components/header.dart'; // Import du Header
 // import '../components/volet.dart'; // Import du Volet
 
-// class ReportsPage extends StatelessWidget {
+// class DocumentsPage extends StatelessWidget {
 //   @override
 //   Widget build(BuildContext context) {
 //     return LayoutBuilder(
@@ -25,8 +25,8 @@
 //                 child: Column(
 //                   children: [
 //                     // Ajout du Header
-//                      Header(
-//                       title: 'Signalements',
+//                     Header(
+//                       title: 'Documents',
 //                       showMenuButton: false,
 //                       nom: 'ZITOUNI',
 //                       prenom: 'Sarah',
@@ -38,7 +38,7 @@
 //                         padding: const EdgeInsets.all(16.0),
 //                         child: Center(
 //                           child: Text(
-//                             'Signalements',
+//                             'Documents',
 //                             style: const TextStyle(fontSize: 18),
 //                             textAlign: TextAlign.center,
 //                           ),

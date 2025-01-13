@@ -1,8 +1,8 @@
 // import 'package:flutter/material.dart';
-// import '../components/header.dart'; // Import du Header
+// import 'package:mon_app/components/header.dart';
 // import '../components/volet.dart'; // Import du Volet
 
-// class ReportsPage extends StatelessWidget {
+// class AssurancePage extends StatelessWidget {
 //   @override
 //   Widget build(BuildContext context) {
 //     return LayoutBuilder(
@@ -13,7 +13,7 @@
 //           backgroundColor: const Color.fromARGB(255, 246, 241, 241),
 //           body: Row(
 //             children: [
-//               // Barre latérale (Volet) pour les grands écrans
+//               // Utilisation du Volet pour les grands écrans
 //               if (isLargeScreen)
 //                 const Volet(
 //                   appartementDetails:
@@ -21,26 +21,24 @@
 //                 ),
 
 //               // Contenu principal
-//                Expanded(
+//               Expanded(
 //                 child: Column(
 //                   children: [
-//                     // Ajout du Header
-//                      Header(
-//                       title: 'Signalements',
-//                       showMenuButton: false,
+//                     // Header
+//                     Header(
+//                       title: 'Assurance',
+//                       showMenuButton: !isLargeScreen,
 //                       nom: 'ZITOUNI',
 //                       prenom: 'Sarah',
 //                     ),
 
-//                     // Corps principal de la page
 //                     const Expanded(
-//                       child: Padding(
-//                         padding: const EdgeInsets.all(16.0),
-//                         child: Center(
+//                       child: Center(
+//                         child: Padding(
+//                           padding: EdgeInsets.all(16.0),
 //                           child: Text(
-//                             'Signalements',
-//                             style: const TextStyle(fontSize: 18),
-//                             textAlign: TextAlign.center,
+//                             'Page dédiée à votre assurance.',
+//                             style: TextStyle(fontSize: 18, color: Colors.black54),
 //                           ),
 //                         ),
 //                       ),
@@ -59,7 +57,7 @@
 //                         'Type de l\'appartement \nNuméro de l\'appartement \nRue \nCode Postal',
 //                   ),
 //                 )
-//               : null, // Pas de Drawer si la taille est grande
+//               : null,
 //         );
 //       },
 //     );

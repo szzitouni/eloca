@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:mon_app/dashboard/dashboard_page.dart';
+import 'package:mon_app/login/auth_service.dart';
+import 'package:mon_app/models/connexionDTO.dart';
 import 'package:mon_app/models/offerDTO.dart';
+import 'package:mon_app/models/userContext.dart';
 import 'login_service.dart';
 
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
 }
+//COMEBACK
 
 class _LoginPageState extends State<LoginPage> {
   // Contrôleurs pour les champs email et mot de passe
@@ -15,38 +20,71 @@ class _LoginPageState extends State<LoginPage> {
   // Clé pour valider le formulaire
   final _formKey = GlobalKey<FormState>();
 
-  // Instance du service d'authentification
+  
   final LoginService _loginService = LoginService();
 
   // FocusNode pour gérer le focus entre les champs
   final FocusNode _passwordFocusNode = FocusNode();
 
+  // Instance du service d'authentification
+  final AuthentificationService authentificationService=AuthentificationService();
+
   late OfferDTO offer;
-  
-  get gestionnaire => null;
+
  
 
 // Soumission du formulaire
   void _submit() async {
-    if (_formKey.currentState!.validate()) {
-      // Récupération des valeurs saisies
-      final email = _emailController.text.trim();
-      final password = _passwordController.text;
+  if (_formKey.currentState!.validate()) {
+    // Récupération des valeurs saisies
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
 
-      try {
-        // Appel de la méthode login dans AuthentificationService
-        await _loginService.loginV3(context, email, password);
-        
+    try {
+      // Appel de la méthode login dans AuthentificationService
+      ConnexionDTO? connexionDTO = await _loginService.login(context, email, password);
+
+      if (connexionDTO != null) {
+        UserContext userContext = UserContext(contextList:connexionDTO.connexions,email: email );
+        // print('Login p : userContext b4 setting : ${userContext.toJson()}'); CHECK : Bon UC
+        setContextAndGoHome(userContext,0);
        
-       
-      } catch (e) {
-        // Gestion des erreurs de connexion
+      } else {
+        // Si ConnexionDTO est null, afficher un message d'erreur
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de connexion: ${e.toString()}')),
+          const SnackBar(content: Text('Erreur: Connexion échouée')),
         );
       }
+    } catch (e) {
+      // Gestion des erreurs de connexion
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur de connexion: ${e.toString()}')),
+      );
     }
   }
+
+}
+  void setContextAndGoHome(UserContext userContext,int index){
+    userContext.currentContext =userContext.contextList?[0];
+
+    try {
+      authentificationService.setUserContext(userContext);
+      // print("Login page : Usercontext set successfully");
+
+    } catch (e) {
+      print ('\n\n\ Exception levée : méthode setContextAndGoHome()  \n\n ');
+      
+    }
+    
+    
+    Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DashboardPage(),
+              ),
+            );
+  }
+
 
 
 
@@ -109,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                         TextFormField(
                           controller: _passwordController, // Associer le contrôleur
                           focusNode: _passwordFocusNode, // Associer le FocusNode
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Mot de passe',
                             border: OutlineInputBorder(),
                           ),

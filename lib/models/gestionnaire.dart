@@ -11,7 +11,7 @@ class Gestionnaire {
     this.idProfil,
     this.idTiers,
     this.mail,
-    this.nom, 
+     this.nom, 
     this.prenom,
   });
 

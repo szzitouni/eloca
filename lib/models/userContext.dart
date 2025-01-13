@@ -1,8 +1,8 @@
 import 'connexion.dart';
 
 class UserContext {
-  final Connexion? currentContext;
-  final List<Connexion>? contextList;
+  Connexion? currentContext;
+  List<Connexion>? contextList;
   final String? email;
 
   UserContext({
@@ -27,5 +27,14 @@ class UserContext {
       'contextList': contextList?.map((e) => e.toJson()).toList(),
       'email': email,
     };
+  }
+
+   @override
+  String toString() {
+    return 'UserContext {\n'
+        '  email: $email,\n'
+        '  currentContext: ${currentContext?.toString() ?? "null"},\n'
+        '  contextList: ${contextList != null ? contextList!.map((e) => e.toString()).join(", ") : "null"}\n'
+        '}';
   }
 }

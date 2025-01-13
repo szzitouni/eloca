@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+
 import '../components/header.dart'; // Import du Header
 import '../components/volet.dart'; // Import du Volet
 
-class MessagesPage extends StatelessWidget {
-  @override
+class ProfilePage extends StatelessWidget {
+  const ProfilePage();
+
+
+
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -13,25 +17,32 @@ class MessagesPage extends StatelessWidget {
           backgroundColor: const Color.fromARGB(255, 246, 241, 241),
           body: Row(
             children: [
-              // Utilisation du Volet pour les grands écrans
+              // Barre latérale (Volet) pour les grands écrans
               if (isLargeScreen)
-                const Volet(),
+                const Volet(
+                 
+                ),
 
               // Contenu principal
               Expanded(
                 child: Column(
                   children: [
                     // Ajout du Header
-                    Header(
-                      title: 'Messages',
-                      showMenuButton: !isLargeScreen,
+                     Header(
+                      title: 'Profil',
+                      showMenuButton: false,
                     ),
 
+                    // Corps principal de la page
                     const Expanded(
-                      child: Center(
-                        child: Text(
-                          'Messages',
-                          style: TextStyle(fontSize: 18),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Center(
+                          child: Text(
+                            'Profil',
+                            style: const TextStyle(fontSize: 18),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
                     ),
@@ -44,11 +55,15 @@ class MessagesPage extends StatelessWidget {
           // Drawer pour petit écran
           drawer: !isLargeScreen
               ? const Drawer(
-                  child: Volet(),
+                  child: Volet(
+                    
+                  ),
                 )
-              : null,
+              : null, // Pas de Drawer si la taille est grande
         );
       },
     );
   }
 }
+
+

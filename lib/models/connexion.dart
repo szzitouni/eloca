@@ -32,24 +32,23 @@ class Connexion {
 
   // Méthode pour convertir un JSON en Connexion
   factory Connexion.fromJson(Map<String, dynamic> json) {
-    return Connexion(
-      adresse: json['adresse'] != null ? Adresse.fromJson(json['adresse']) : null,
-      idImmeuble: json['idImmeuble'],
-      idProfil: json['idProfil'],
-      idTiers: json['idTiers'],
-      identifiant: json['identifiant'],
-      infosLot: json['infosLot'] != null
-          ? (json['infosLot'] as List).map((item) => InfosLot.fromJson(item)).toList()
-          : null,
-      lettreCleMaya: json['lettreCleMaya'],
-      nom: json['nom'],
-      nomImmeuble: json['nomImmeuble'],
-      prenom: json['prenom'],
-      telephone: json['telephone'],
-      hasPositifSold: json['hasPositifSold'],
-    );
-  }
-
+  return Connexion(
+    adresse: json['adresse'] != null ? Adresse.fromJson(json['adresse']) : null,
+    idImmeuble: json['idImmeuble'] ?? 0,
+    idProfil: json['idProfil'] ?? 0,
+    idTiers: json['idTiers'] ?? 0,
+    identifiant: json['identifiant'] ?? '',
+    infosLot: json['infosLot'] != null
+        ? (json['infosLot'] as List).map((item) => InfosLot.fromJson(item)).toList()
+        : [],
+    lettreCleMaya: json['lettreCleMaya'] ?? '',
+    nom: json['nom'] ?? '',
+    nomImmeuble: json['nomImmeuble'] ?? '',
+    prenom: json['prenom'] ?? '',
+    telephone: json['telephone'] ?? '',
+    hasPositifSold: json['hasPositifSold'] ?? false,
+  );
+}
   // Méthode pour convertir un objet Connexion en JSON
   Map<String, dynamic> toJson() {
     return {
@@ -67,4 +66,24 @@ class Connexion {
       'hasPositifSold': hasPositifSold,
     };
   }
+
+   @override
+  String toString() {
+    return '''
+      Connexion(
+      adresse: ${adresse.toString()},
+      idImmeuble: $idImmeuble,
+      idProfil: $idProfil,
+      idTiers: $idTiers,
+      identifiant: $identifiant,
+      infosLot: ${infosLot.toString()},
+      lettreCleMaya: $lettreCleMaya,
+      nom: $nom,
+      nomImmeuble: $nomImmeuble,
+      prenom: $prenom,
+      telephone: $telephone,
+      hasPositifSold: $hasPositifSold
+    )''';
+  }
+
 }

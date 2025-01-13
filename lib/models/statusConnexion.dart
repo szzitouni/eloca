@@ -15,18 +15,18 @@ class StatusConnexion {
 
   // Factory pour créer une instance de StatusConnexion à partir d'un JSON
   factory StatusConnexion.fromJson(Map<String, dynamic> json) {
-    return StatusConnexion(
-      errorMessage: json['errorMessage'],
-      httpStatus: json['httpStatus'] != null
-          ? HttpStatusEnumExtension.fromValue(json['httpStatus'])
-          : null,
-      offer: json['offer'],
-      redirectToAppMobile: json['redirectToAppMobile'] != null
-          ? RedirectToAppMobileEnumExtension.fromValue(json['redirectToAppMobile'])
-          : null,
-      redirectUrl: json['redirectUrl'],
-    );
-  }
+  return StatusConnexion(
+    errorMessage: json['errorMessage'] ?? '',
+    httpStatus: json['httpStatus'] != null
+        ? HttpStatusEnumExtension.fromValue(json['httpStatus'])
+        : null,
+    offer: json['offer'] ?? '',
+    redirectToAppMobile: json['redirectToAppMobile'] != null
+        ? RedirectToAppMobileEnumExtension.fromValue(json['redirectToAppMobile'])
+        : null,
+    redirectUrl: json['redirectUrl'] ?? '',
+  );
+}
 
   // Méthode pour convertir l'objet en JSON
   Map<String, dynamic> toJson() {
@@ -37,6 +37,18 @@ class StatusConnexion {
       'redirectToAppMobile': redirectToAppMobile?.toValue(),
       'redirectUrl': redirectUrl,
     };
+  }
+
+  @override
+  String toString() {
+    return '''
+      StatusConnexion(
+      errorMessage: $errorMessage,
+      httpStatus: $httpStatus,
+      offer: $offer,
+      redirectToAppMobile: $redirectToAppMobile,
+      redirectUrl: $redirectUrl
+    )''';
   }
 }
 

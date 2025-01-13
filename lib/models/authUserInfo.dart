@@ -1,7 +1,7 @@
 class AuthUserInfo {
   List<dynamic>? authorities;
   String? cgu;
-  String? email;
+  String email;
   int? id;
   List<int>? idImmeuble;
   List<int>? idLot;
@@ -17,7 +17,7 @@ class AuthUserInfo {
  AuthUserInfo({
     this.authorities,
     this.cgu,
-    this.email,
+    required this.email,
     this.id,
     this.idImmeuble,
     this.idLot,
@@ -25,31 +25,38 @@ class AuthUserInfo {
     this.idProfil,
     this.idTiers,
     this.listIdPoleTC,
-    this.nom,
-    this.prenom,
+    required this.nom,
+    required this.prenom,
     this.referenceLocataire,
     this.username,
   });
+
+  
    // Factory pour créer une instance de AuthUserInfo à partir d'un JSON
   factory AuthUserInfo.fromJson(Map<String, dynamic> json) {
     return AuthUserInfo(
-      authorities: json['authorities'] != null ? List<dynamic>.from(json['authorities']) : null,
-      cgu: json['cgu'],
-      email: json['email'],
-      id: json['id'],
-      idImmeuble: json['idImmeuble'] != null ? List<int>.from(json['idImmeuble']) : null,
-      idLot: json['idLot'] != null ? List<int>.from(json['idLot']) : null,
-      idPole: json['idPole'] != null ? List<int>.from(json['idPole']) : null,
-      idProfil: json['idProfil'] != null ? List<int>.from(json['idProfil']) : null,
-      idTiers: json['idTiers'] != null ? List<int>.from(json['idTiers']) : null,
-      listIdPoleTC: json['listIdPoleTC'] != null ? List<int>.from(json['listIdPoleTC']) : null,
-      nom: json['nom'],
-      prenom: json['prenom'],
-      referenceLocataire: json['referenceLocataire'],
-      username: json['username'],
+      authorities: json['authorities'] as List<dynamic>?,
+      cgu: json['cgu'] as String?,
+      email: json['email'] ?? '', // Assure que le champ email est obligatoire
+      id: json['id'] as int?,
+      idImmeuble: (json['idImmeuble'] as List<dynamic>?)
+          ?.map((item) => item as int)
+          .toList(),
+      idLot: (json['idLot'] as List<dynamic>?)?.map((item) => item as int).toList(),
+      idPole: (json['idPole'] as List<dynamic>?)?.map((item) => item as int).toList(),
+      idProfil:
+          (json['idProfil'] as List<dynamic>?)?.map((item) => item as int).toList(),
+      idTiers: (json['idTiers'] as List<dynamic>?)?.map((item) => item as int).toList(),
+      listIdPoleTC:
+          (json['listIdPoleTC'] as List<dynamic>?)?.map((item) => item as int).toList(),
+      nom: json['nom'] ?? '', // Assure que le champ nom est obligatoire
+      prenom: json['prenom'] ?? '', // Assure que le champ prenom est obligatoire
+      referenceLocataire: json['referenceLocataire'] as String?,
+      username: json['username'] as String?,
     );
   }
 
+  get adresse => null;
   // Méthode pour convertir l'objet en JSON
   Map<String, dynamic> toJson() {
     return {
@@ -70,5 +77,26 @@ class AuthUserInfo {
     };
   }
 
+
+@override
+  String toString() {
+    return '''
+      AuthUserInfo(
+      email: $email,
+      nom: $nom,
+      prenom: $prenom,
+      id: $id,
+      username: $username,
+      cgu: $cgu,
+      referenceLocataire: $referenceLocataire,
+      authorities: $authorities,
+      idImmeuble: $idImmeuble,
+      idLot: $idLot,
+      idPole: $idPole,
+      idProfil: $idProfil,
+      idTiers: $idTiers,
+      listIdPoleTC: $listIdPoleTC
+      )''';
+  }
 
 }
