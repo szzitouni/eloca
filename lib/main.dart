@@ -37,6 +37,12 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (context) => MessagesPage());
           case '/profil':
             return MaterialPageRoute(builder: (context) => ProfilePage());
+          case '/account':
+            return MaterialPageRoute(builder: (context) => AccountPage());
+          case '/cgu':
+            return MaterialPageRoute(builder: (context) => CguPage());
+          case '/reports':
+            return MaterialPageRoute(builder: (context) => ReportsPage());
           default:
             return null; // Pour les routes inconnues
         }

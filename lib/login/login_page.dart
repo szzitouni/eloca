@@ -45,9 +45,14 @@ class _LoginPageState extends State<LoginPage> {
       ConnexionDTO? connexionDTO = await _loginService.login(context, email, password);
 
       if (connexionDTO != null) {
+        // print('Soumission du formulaire : connexionDTO est non nul');
         UserContext userContext = UserContext(contextList:connexionDTO.connexions,email: email );
-        // print('Login p : userContext b4 setting : ${userContext.toJson()}'); CHECK : Bon UC
-        setContextAndGoHome(userContext,0);
+        //print('\n Login p : userContext b4 setting : ${userContext.toJson()}'); //CHECK : Bon 
+        //print('Soumission du formulaire : Récupération du userContext');
+        await setContextAndGoHome(userContext, 100); // Le délai est
+        print('Soumission du formulaire : context initialisé  ');
+
+        
        
       } else {
         // Si ConnexionDTO est null, afficher un message d'erreur
@@ -64,26 +69,41 @@ class _LoginPageState extends State<LoginPage> {
   }
 
 }
-  void setContextAndGoHome(UserContext userContext,int index){
-    userContext.currentContext =userContext.contextList?[0];
-
-    try {
-      authentificationService.setUserContext(userContext);
-      // print("Login page : Usercontext set successfully");
-
-    } catch (e) {
-      print ('\n\n\ Exception levée : méthode setContextAndGoHome()  \n\n ');
-      
+  Future<void> setContextAndGoHome(UserContext userContext, int index) async {
+  try {
+    // Vérifie si l'index fourni est valide
+    if (userContext.contextList != null && userContext.contextList!.isNotEmpty) {
+      if (index >= 0 && index < userContext.contextList!.length) {
+        userContext.currentContext = userContext.contextList![index];
+      } else {
+        print('Index invalide, assignation du premier contexte disponible.');
+        userContext.currentContext = userContext.contextList![0];
+      }
+    } else {
+      print('Liste des contextes vide ou null.');
+      throw Exception("Aucun contexte utilisateur disponible.");
     }
-    
-    
-    Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DashboardPage(),
-              ),
-            );
+
+    // Écriture dans le stockage et attente de sa finalisation
+    await authentificationService.setUserContext(userContext);
+    print("\n\n\n Login page : UserContext set successfully");
+
+    // Redirection après l'écriture
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DashboardPage(),
+      ),
+    );
+  } catch (e) {
+    print('\n\nException levée : méthode setContextAndGoHome()\n\nErreur : $e');
+    // Afficher une erreur via un SnackBar ou une boîte de dialogue
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erreur : ${e.toString()}')),
+    );
   }
+}
+
 
 
 
@@ -91,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(

@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mon_app/config/config_dev.dart';
 
 class AccountService {
-  final String baseUrl;
+  
   final Map<String, String> defaultHeaders;
   final bool withCredentials;
 
   AccountService({
-    required this.baseUrl,
+   
     required this.defaultHeaders,
     this.withCredentials = false,
   });
@@ -15,16 +16,17 @@ class AccountService {
   /// Method to get the solde for a specific profile.
   Future<Map<String, String>> getSolde(int idProfil, {bool reportProgress = false}) async {
     // Check if idProfil is null or undefined (like in the original Java code).
-    if (idProfil == null) {
-      throw ArgumentError('Required parameter idProfil was null or undefined.');
-    }
+    // if (idProfil == null) {
+    //   throw ArgumentError('Required parameter idProfil was null or undefined.');
+    // }
+    // inutile car idProfil ne peut pas etre nukl :) 
 
     // Setting the headers.
     Map<String, String> headers = Map.from(defaultHeaders);
     headers['Accept'] = 'application/json'; // Accept header as 'application/json'
 
     // Construct the URL for the API endpoint
-    final Uri url = Uri.parse('$baseUrl/api/v1/profil/${Uri.encodeComponent(idProfil.toString())}/solde');
+    final Uri url =  Uri.parse('${Config.URL_API_PROFIL}/${Uri.encodeComponent(idProfil.toString())}/solde');
 
     try {
       // Make the GET request.

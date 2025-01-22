@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'package:dio/dio.dart';  // Utilisez Dio de manière centralisée via DioService
+import 'package:dio/dio.dart'; 
 import 'package:mon_app/login/auth_service.dart';
 import 'package:mon_app/models/userContext.dart';
+import 'package:mon_app/secure_storage_service.dart';
 import '../config/config_dev.dart';
 import '../models/gestionnaire.dart';
 import '../dio_service.dart';  // Importez DioService
@@ -9,7 +10,7 @@ import '../dio_service.dart';  // Importez DioService
 class DashboardService {
   final Dio dioClient;
   
-
+  final SecureStorageService _secureStorageService = SecureStorageService(); 
   final authentificationService = AuthentificationService();
 
   // Utilisation de l'instance partagée de Dio
@@ -113,7 +114,7 @@ Future<Gestionnaire?> getGestionnaire(int idProfil) async {
 
 
 
-  Future<UserContext?> getUserContext() {
-    return authentificationService.userContext;
+  Future<UserContext?> getUserContext() async {
+    return await _secureStorageService.getUserContext();
   }
 }

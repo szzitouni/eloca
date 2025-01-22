@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mon_app/login/auth_service.dart';
 import 'package:mon_app/models/adresse.dart';
 import 'package:mon_app/models/userContext.dart';
+import 'package:mon_app/secure_storage_service.dart';
 
 class Volet extends StatefulWidget {
   const Volet() ;
@@ -12,6 +13,7 @@ class Volet extends StatefulWidget {
 
 class _VoletState extends State<Volet> {
   final authentificationService = AuthentificationService();
+  final SecureStorageService _secureStorageService = SecureStorageService(); 
   UserContext? userContext; // Stocker les données utilisateur
   Adresse? adresse ;
 
@@ -107,7 +109,7 @@ class _VoletState extends State<Volet> {
   }
 
   Future<UserContext?> getUserContext() {
-    return authentificationService.userContext;
+    return authentificationService.getUserContext();
   }
 
   

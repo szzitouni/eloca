@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:mon_app/login/auth_service.dart';
-import 'package:mon_app/login/login_service.dart';
-import 'package:mon_app/models/userContext.dart'; // Assurez-vous que AuthService est bien importé
+import 'package:mon_app/models/userContext.dart';
+import 'package:mon_app/secure_storage_service.dart';
+import 'package:mon_app/themes/eloca_theme.dart';
 
 class Header extends StatefulWidget {
   final String title;
   final bool showMenuButton;
-  //final ConnexionDTO connexionDTO; // Injection de ConnexionDTO
+  
 
   Header({
     required this.title,
     required this.showMenuButton,
-    //required this.connexionDTO,
   });
 
   @override
@@ -19,8 +19,9 @@ class Header extends StatefulWidget {
 }
 
 class _HeaderState extends State<Header> {
-  final authentificationService = AuthentificationService();
-  UserContext? userContext; // Stocker les données utilisateur
+  final SecureStorageService _secureStorageService = SecureStorageService(); 
+  final AuthentificationService authentificationService = AuthentificationService();
+  UserContext? userContext;
 
   @override
   void initState() {
@@ -29,7 +30,7 @@ class _HeaderState extends State<Header> {
   }
 
   Future<void> loadUserContext() async {
-    final context = await getUserContext();
+    final context = await authentificationService.getUserContext();
     setState(() {
       userContext = context;
     });
@@ -38,27 +39,25 @@ class _HeaderState extends State<Header> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0, // Enlève l'ombre sous l'AppBar
+      backgroundColor: AppTheme.backgroundColor,
+      elevation: 0,
       leading: widget.showMenuButton
           ? Builder(
               builder: (BuildContext context) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.black),
-                tooltip: 'Ouvrir le menu', // Tooltip pour accessibilité
+                icon: const Icon(Icons.menu, color: AppTheme.secondaryColor),
+                tooltip: 'Ouvrir le menu',
                 onPressed: () {
                   Scaffold.of(context).openDrawer();
                 },
               ),
             )
           : null,
-
       title: Center(
         child: Image.asset(
           'assets/images/eloca.png',
-          height: 55, // Taille du logo
+          height: 55,
         ),
       ),
-
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 10),
@@ -70,11 +69,9 @@ class _HeaderState extends State<Header> {
                 Navigator.pushReplacementNamed(context, '/cgu');
               } else if (value == 'Déconnexion') {
                 try {
-                  // Révoquer le token et rediriger vers la page de login
                   await authentificationService.logout();
                   Navigator.pushReplacementNamed(context, '/login');
                 } catch (error) {
-                  // Afficher un message d'erreur si la révocation échoue
                   debugPrint('Erreur lors de la déconnexion : $error');
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Impossible de se déconnecter. Veuillez réessayer.')),
@@ -83,53 +80,49 @@ class _HeaderState extends State<Header> {
               }
             },
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'profil',
-                child: Text('Mon profil'),
+                child: Text(
+                  'Mon profil',
+                  style: AppTheme.popupMenuTextStyle,
+                ),
               ),
               const PopupMenuItem(
                 value: 'CGU',
-                child: Text('Mentions légales et CGU'),
+                child: Text(
+                  'Mentions légales et CGU',
+                  style: AppTheme.popupMenuTextStyle,
+                ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'Déconnexion',
-                child: Text('Déconnexion'),
+                child: Text(
+                  'Déconnexion',
+                  style: AppTheme.popupMenuHighlightedTextStyle,
+                ),
               ),
             ],
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.black, // Couleur du cadre
-                  width: 1, // Épaisseur du cadre
-                ),
-                borderRadius: BorderRadius.circular(5),
-              ),
+              decoration: AppTheme.popupMenuDecoration,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     userContext != null
-                        ? '${userContext?.currentContext?.prenom.toString()} ${userContext?.currentContext?.nom.toString()}'
-                        : 'Utilisateur inconnu', // Affichage par défaut si les données sont absentes
-                    style: const TextStyle(
-                      color: Colors.black, // Couleur du texte
-                      fontSize: 16,
-                    ),
+                        ? '${userContext?.currentContext?.prenom ?? ''} ${userContext?.currentContext?.nom ?? ''}'
+                        : 'Utilisateur inconnu',
+                    style: AppTheme.userNameTextStyle,
                   ),
-                  const SizedBox(width: 8), // Espace
-
-                  // Petite flèche vers le bas
+                  const SizedBox(width: 8),
                   const Icon(
-                    Icons.arrow_drop_down, // Icône flèche vers le bas
-                    color: Colors.black,
+                    Icons.arrow_drop_down,
+                    color: AppTheme.secondaryColor,
                   ),
-                  const SizedBox(width: 8), // Espace
-
-                  // Icône d'utilisateur à gauche
+                  const SizedBox(width: 8),
                   const Icon(
-                    Icons.person_rounded, // Icône utilisateur
-                    color: Colors.black,
+                    Icons.person_rounded,
+                    color: AppTheme.secondaryColor,
                   ),
                 ],
               ),
@@ -139,9 +132,4 @@ class _HeaderState extends State<Header> {
       ],
     );
   }
-
-  Future<UserContext?> getUserContext() {
-    return authentificationService.userContext;
-  }
-
 }

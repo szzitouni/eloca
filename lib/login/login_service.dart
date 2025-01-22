@@ -1,17 +1,17 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mon_app/login/auth_service.dart';
+import 'package:mon_app/secure_storage_service.dart';
 import '../config/config_dev.dart';  
 import '../models/connexionDTO.dart';
 import '../models/offerDTO.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // me servira plus tard pour les tokens
 import '../screens/ErrorScreen.dart';
 
 class LoginService {
 
   late Uri url;
-  final storage = FlutterSecureStorage();
+   final SecureStorageService _secureStorageService = SecureStorageService();
   final AuthentificationService authentificationService =AuthentificationService();
   Future<OfferDTO?> getOffer(String mail) async {
     if (mail.isEmpty) {
@@ -70,7 +70,7 @@ class LoginService {
   
 
   Future<String?> getAccessToken() async {
-    return await storage.read(key: 'access_token');
+    return await _secureStorageService.read( 'access_token');
   }
 
 
@@ -90,66 +90,66 @@ class LoginService {
   }
 
   //Méthode de connexion VVV
-  Future<ConnexionDTO?> login(BuildContext context, String email, String password) async {
-  try {
-    String mailClient = email.trim().toLowerCase();
+    Future<ConnexionDTO?> login(BuildContext context, String email, String password) async {
+    try {
+      String mailClient = email.trim().toLowerCase();
 
-    // Récupération de l'offre de manière asynchrone
-    OfferDTO? offerDto = await getOffer(mailClient); // Utilisation de await ici
-    // print("OfferDTO récupéré: $offerDto");
-    // print("Site récupéré: ${offerDto?.site}");
+      // Récupération de l'offre de manière asynchrone
+      OfferDTO? offerDto = await getOffer(mailClient); // Utilisation de await ici
+      // print("OfferDTO récupéré: $offerDto");
+      // print("Site récupéré: ${offerDto?.site}");
 
-    if (offerDto == null) {
-      throw Exception("OfferDTO est null");
+      if (offerDto == null) {
+        throw Exception("OfferDTO est null");
+      }
+
+      String msg = '';
+      SiteEnum? siteEnum = offerDto.site;
+
+      // Gestion des différentes offres
+      switch (siteEnum) {
+        case SiteEnum.GlocLocataire:
+        case SiteEnum.GlocLocataireMobile:
+        case SiteEnum.GlocCollaborateur:
+          print("Appel de la méthode login pour $email");
+
+          // Appel au service d'authentification
+          ConnexionDTO? connexionDTO = await authentificationService.login(email, password); // Utilisation de await ici
+
+          if (connexionDTO == null) {
+            throw Exception("Erreur lors de la récupération de ConnexionDTO");
+          }
+    
+          return connexionDTO;
+
+        case SiteEnum.TwentyCampus:
+        case SiteEnum.TwentyCampusMobile:
+        case SiteEnum.TwentyCampusWeb:
+          msg = "Error offer for TwentyCampus. Redirect to ${offerDto.redirectUrl}";
+          print(msg);
+          goToErrorOffer(context, msg);
+          break;
+
+        case SiteEnum.GlocBailleur:
+        case SiteEnum.GlocBailleurMobile:
+          msg = "Error offer for GlocBailleur. Redirect to ${offerDto.redirectUrl}";
+          print(msg);
+          goToErrorOffer(context, msg);
+          break;
+
+        default:
+          msg = "Compte inexistant.";
+          print(msg);
+          goToErrorOffer(context, msg);
+      }
+    } catch (error) {
+      print("Erreur lors de login: $error");
+      ScaffoldMessenger.of(context).showSnackBar( // comeback
+        SnackBar(content: Text("Erreur de connexion: ${error.toString()}")),
+      );
     }
-
-    String msg = '';
-    SiteEnum? siteEnum = offerDto.site;
-
-    // Gestion des différentes offres
-    switch (siteEnum) {
-      case SiteEnum.GlocLocataire:
-      case SiteEnum.GlocLocataireMobile:
-      case SiteEnum.GlocCollaborateur:
-        print("Appel de la méthode login pour $email");
-
-        // Appel au service d'authentification
-        ConnexionDTO? connexionDTO = await authentificationService.login(email, password); // Utilisation de await ici
-
-        if (connexionDTO == null) {
-          throw Exception("Erreur lors de la récupération de ConnexionDTO");
-        }
-  
-        return connexionDTO;
-
-      case SiteEnum.TwentyCampus:
-      case SiteEnum.TwentyCampusMobile:
-      case SiteEnum.TwentyCampusWeb:
-        msg = "Error offer for TwentyCampus. Redirect to ${offerDto.redirectUrl}";
-        print(msg);
-        goToErrorOffer(context, msg);
-        break;
-
-      case SiteEnum.GlocBailleur:
-      case SiteEnum.GlocBailleurMobile:
-        msg = "Error offer for GlocBailleur. Redirect to ${offerDto.redirectUrl}";
-        print(msg);
-        goToErrorOffer(context, msg);
-        break;
-
-      default:
-        msg = "Compte inexistant.";
-        print(msg);
-        goToErrorOffer(context, msg);
-    }
-  } catch (error) {
-    print("Erreur lors de login: $error");
-    ScaffoldMessenger.of(context).showSnackBar( // comeback
-      SnackBar(content: Text("Erreur de connexion: ${error.toString()}")),
-    );
+    return null;
   }
-  return null;
-}
 
 
 }

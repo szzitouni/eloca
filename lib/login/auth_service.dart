@@ -1,68 +1,88 @@
 import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:mon_app/config/config_dev.dart';
-import 'package:mon_app/dashboard/dashboard_service.dart';
 import 'package:mon_app/models/connexionDTO.dart';
 import 'package:mon_app/models/userContext.dart';
+import 'package:mon_app/secure_storage_service.dart';
 
 class AuthentificationService {
-  // Clés
-  static const String ACCESS_TOKEN_KEY = 'access_token';
-  static const String REFRESH_TOKEN_KEY = 'refresh_token';
-  static const String USER_CONTEXT_KEY = 'userContext';
+  
+  // Storage 
+   final _secureStorageService = SecureStorageService(); 
 
-  final storage = FlutterSecureStorage();
   late bool isCollab;
-   UserContext? _userContext; /// remettre à late ? COMEBACK
+  UserContext? userContext; /// remettre à late ? COMEBACK
 
   // Getter pour userContext
-  Future<UserContext?> get userContext async {
-    if (_userContext == null) {
-      final jsonString = await storage.read(key:USER_CONTEXT_KEY);
+  // Future<UserContext?> get userContext async {
+  //   if (_userContext == null) {
+  //     final jsonString = await _secureStorage.read(USER_CONTEXT_KEY);
      
-      // print('JSON b4 : \n\n\n $jsonString \n\n '); CHECK BoN Json
+  //     // print('JSON b4 : \n\n\n $jsonString \n\n '); CHECK BoN Json
       
-      if (jsonString != null) {
-        _userContext = UserContext.fromJson(json.decode(jsonString));
+  //     if (jsonString != null) {
+  //       _userContext = UserContext.fromJson(json.decode(jsonString));
        
-        // print('UserContext  : \n\n\n ${_userContext.toString()} \n\n '); Check Bon UC
+  //       // print('UserContext  : \n\n\n ${_userContext.toString()} \n\n '); Check Bon UC
 
-      }
-    }
+  //     }
+  //   }
 
-    return _userContext;
-  }
+  //   return _userContext;
+  // }
+
+  //  Getter pour userContext
+ 
 
   // Setter pour userContext
   Future<void> setUserContext(UserContext userContext, {bool withoutLocalSave = false}) async {
-  _userContext = userContext;
+  userContext = userContext;
+  //  ('_userContext en local : $userContext \n\n\n'); // check bon uc
+  
   if (!withoutLocalSave) {
-    final jsonString = json.encode(userContext.toJson());
-    await storage.write(key: USER_CONTEXT_KEY, value: jsonString);
 
+    await _secureStorageService.setUserContext(userContext);
+    //UserContext? usTemp=await _secureStorageService.getUserContext();
+    // print ('usTemp==null ${usTemp==null}'); /// false
+    // print ('userContext en en storage  : ${usTemp} \n\n\n'); // Check bon UC
+    
     // Validation après écriture
-    final savedJson = await storage.read(key: USER_CONTEXT_KEY);
-     // print('Vérification du UserContext enregistré : $savedJson'); CHECK Bon UC
+    //final savedJson = await _secureStorageService.read(Config.USER_CONTEXT_KEY);
+     //print ('Vérification du UserContext enregistré : $savedJson'); // CHECK Bon UC
   }
 }
 
-  // Obtenir idProfil
- Future<int> getIdProfil() async {
-  final context = await userContext;
-  if (context == null) {
-    print('UserContext est null.');
-    return 0;
-  }
 
-  // print('UserContext récupéré : ${context.toJson()}'); CHECK Bon UC
-  final idProfil = context.currentContext?.idProfil ?? 0;
+Future<int> getIdProfil() async {
+  try {
+    print('Début de getIdProfil');
+    final userContext = await getUserContext();
 
-  if (idProfil == 0) {
-    print('idProfil est invalide ou absent.');
+    if (userContext == null) {
+      print('UserContext est null.');
+      return 0; // Aucun ID valide si le UserContext est null
+    }
+
+    final idProfil = userContext.currentContext?.idProfil ?? 0;
+    print('ID PROFIL récupéré : $idProfil');
+      // print('UserContext récupéré : ${context.toJson()}'); CHECK Bon UC
+  //final idProfil = _userContext.currentContext?.idProfil ?? 0;
+
+    if (idProfil <= 0) {
+        //throw Exception("idProfil est invalide ou absent.");
+      print('idProfil est invalide ou absent.');
+      return 0; // Retourne 0 si l'ID est invalide
+    }
+
+    // print('Fin de getIdProfil avec ID PROFIL : $idProfil');
+    return idProfil;
+  } catch (e) {
+    print('Erreur dans getIdProfil : $e');
+    return 0; // Retourne 0 en cas d'erreur imprévue
   }
-  return idProfil;
 }
+
 
   // Login
   Future<ConnexionDTO?> login(String email, String password) async {
@@ -84,18 +104,18 @@ class AuthentificationService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final accessToken = data[ACCESS_TOKEN_KEY];
-      final refreshToken = data[REFRESH_TOKEN_KEY];
+      final accessToken = data[Config.ACCESS_TOKEN_KEY];
+      final refreshToken = data[Config.REFRESH_TOKEN_KEY];
 
       await saveToken(accessToken);
-      await storage.write(key: REFRESH_TOKEN_KEY, value: refreshToken);
+      await  _secureStorageService.write(Config.REFRESH_TOKEN_KEY,  refreshToken);
 
       return await connexionV2();
     } else {
       throw Exception('Échec de l\'authentification : ${response.body}');
     }
   } catch (e) {
-    print('Erreur dans login : $e');
+    log('Erreur dans login : $e');
     rethrow; // Important pour gérer l'erreur dans la couche d'appel
   }
 }
@@ -105,7 +125,9 @@ class AuthentificationService {
     isCollab=false;
     try {
       // Révoquer le token côté serveur
-      clearUserContext();
+      await clearUserContext();
+      log('Déconnexion réussie');
+      // Ajouter redirection ou pas ?
 
       // Effectuer une redirection ou un nettoyage spécifique à l'application
     } catch (error) {
@@ -115,13 +137,13 @@ class AuthentificationService {
 
   // Vérification de la connexion
   Future<bool> isLoggedIn() async {
-    String? token = await storage.read(key: ACCESS_TOKEN_KEY);
+    String? token = await _secureStorageService.read(Config.ACCESS_TOKEN_KEY);
     return token != null && token.isNotEmpty;
   }
 
   // Connexion V2
   Future<ConnexionDTO?> connexionV2() async {
-    final accessToken = await storage.read(key: ACCESS_TOKEN_KEY);
+    final accessToken = await _secureStorageService.read(Config.ACCESS_TOKEN_KEY);
     if (accessToken == null || accessToken.isEmpty) {
       throw Exception('Non authentifié : Token absent.');
     }
@@ -158,7 +180,7 @@ class AuthentificationService {
   // Révoquer le token
   Future<void> revokeToken() async {
     try {
-      String? accessToken = await storage.read(key: ACCESS_TOKEN_KEY);
+      String? accessToken = await _secureStorageService.read(Config.ACCESS_TOKEN_KEY);
       if (accessToken == null) {
         throw Exception('Aucun token d\'accès trouvé. Veuillez vous reconnecter.');
       }
@@ -187,7 +209,7 @@ class AuthentificationService {
   // Méthode pour obtenir le token
   Future<String?> getToken() async {
     try {
-      final token = await storage.read(key: ACCESS_TOKEN_KEY);
+      final token = await _secureStorageService.read(Config.ACCESS_TOKEN_KEY);
       if (token == null || token.isEmpty) {
         throw Exception("Aucun token trouvé. Veuillez vous reconnecter.");
       }
@@ -201,17 +223,26 @@ class AuthentificationService {
   // Effacer le contexte utilisateur
   Future<void> clearUserContext() async {
     try {
-      await revokeToken();
-      //_userContext = null;
-    } catch (e) {
-      print('Erreur lors de la suppression du contexte utilisateur : $e');
+     final token = await getToken(); // Vérifie si un token existe
+    if (token != null) {
+      await revokeToken(); // Révoque le token côté serveur si possible
     }
+    } catch (e) {
+      log('Erreur lors de la suppression du contexte utilisateur : $e');
+    } finally{
+    // Supprime toujours les données locales, même si la révocation échoue
+      await deleteToken();
+    userContext = null; // Réinitialise le contexte utilisateur
+    print("Contexte utilisateur effacé localement.");
+    }
+    
   }
+  
 
   // Rafraîchir le token
   Future<String?> refreshToken() async {
     try {
-      final refreshToken = await storage.read(key: REFRESH_TOKEN_KEY);
+      final refreshToken = await _secureStorageService.read(Config.REFRESH_TOKEN_KEY);
 
       if (refreshToken == null) {
         throw Exception("Aucun token de rafraîchissement disponible.");
@@ -256,7 +287,7 @@ class AuthentificationService {
   // Sauvegarder le token d'accès
   Future<void> saveToken(String token) async {
     try {
-      await storage.write(key: ACCESS_TOKEN_KEY, value: token);
+      await  _secureStorageService.write( Config.ACCESS_TOKEN_KEY,  token);
     } catch (error) {
       print('Erreur lors de la sauvegarde du token : $error');
       throw Exception("Impossible de sauvegarder le token.");
@@ -266,7 +297,7 @@ class AuthentificationService {
   // Sauvegarder le refresh token
   Future<void> saveRefreshToken(String token) async {
     try {
-      await storage.write(key: REFRESH_TOKEN_KEY, value: token);
+      await  _secureStorageService.write(Config.REFRESH_TOKEN_KEY,  token);
     } catch (error) {
       print('Erreur lors de la sauvegarde du token : $error');
       throw Exception("Impossible de sauvegarder le token.");
@@ -276,8 +307,8 @@ class AuthentificationService {
   // Supprimer les tokens
   Future<void> deleteToken() async {
     try {
-      await storage.delete(key: ACCESS_TOKEN_KEY);
-      await storage.delete(key: REFRESH_TOKEN_KEY);
+      await  _secureStorageService.delete(Config.ACCESS_TOKEN_KEY);
+      await  _secureStorageService.delete(Config.REFRESH_TOKEN_KEY);
       print("Les tokens ont été supprimés localement.");
     } catch (error) {
       print('Erreur lors de la suppression du token : $error');
@@ -299,4 +330,14 @@ class AuthentificationService {
     }
     return newToken;
   }
+
+   Future<UserContext?> getUserContext() async {
+    UserContext? uc= await _secureStorageService.getUserContext();
+    // if (uc==null) {
+    //   return userContext;
+    // } 
+    return uc;
+  }
 }
+
+

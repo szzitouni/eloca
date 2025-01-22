@@ -1,9 +1,12 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:mon_app/login/auth_service.dart';
 import 'package:mon_app/models/gestionnaire.dart';
 import 'package:mon_app/dashboard/dashboard_service.dart'; // Service de gestionnaire avec Dio
 import '../components/header.dart'; // Import du Header
 import '../components/volet.dart'; // Import du Volet
+import '../themes/eloca_theme.dart'; // Import du fichier de thème
 
 class DashboardPage extends StatefulWidget {
   DashboardPage();
@@ -13,8 +16,8 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-final _dashboardService = DashboardService(); 
-final _authentificationService = AuthentificationService();
+  final _dashboardService = DashboardService(); 
+  final _authentificationService = AuthentificationService();
 
   Gestionnaire? gestionnaire;
   String solde = '...';
@@ -29,36 +32,37 @@ final _authentificationService = AuthentificationService();
   }
 
   // Méthode pour charger les données
-  Future<void> _fetchData() async {
-    try {
-      final idProfil = await _authentificationService.getIdProfil(); // Récupère l'id de profil
-      // print("idProfil récupéré : $idProfil"); CHECK Bon id
-
-
-      if (idProfil > 0) {
-        final fetchedGestionnaire = await _dashboardService.getGestionnaire(idProfil); // Récupère le gestionnaire
-        if (fetchedGestionnaire != null) {
-          print("Gestionnaire récupéré : ${fetchedGestionnaire.nom}");
-        } else {
-          print("Aucun gestionnaire trouvé pour idProfil : $idProfil");
-        }
-        setState(() {
-          gestionnaire = fetchedGestionnaire;
-          solde = '150.00 €';
-          signalementStatut = '2 signalements en attente';
-          isLoading = false;
-        });
-      } else {
-        print('idProfil invalide.');
-      }
-    } catch (e) {
+ Future<void> _fetchData() async {
+  try {
+    final idProfil = await _authentificationService.getIdProfil();
+    if (idProfil > 0) {
+      final fetchedGestionnaire = await _dashboardService.getGestionnaire(idProfil);
       setState(() {
-        errorMessage = 'Erreur lors du chargement des données : $e';
+        gestionnaire = fetchedGestionnaire;
+        solde = '150.00 €';
+        signalementStatut = '2 signalements en attente';
         isLoading = false;
       });
-      showErrorDialog(e); // Affiche l'erreur dans un dialogue
+    } else {
+      print('ID Profil invalide (<= 0)');
     }
+  } catch (e) {
+    print('Erreur dans _fetchData : $e');
+    setState(() {
+      errorMessage = 'Erreur lors du chargement des données : $e';
+      isLoading = false;
+    });
+  } finally {
+    // Toujours s'assurer que isLoading est mis à jour
+    if (isLoading) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+    print('Fin de _fetchData : isLoading=$isLoading');
   }
+}
+
 
   // Méthode pour afficher un dialogue d'erreur
   void showErrorDialog(dynamic error) {
@@ -98,7 +102,7 @@ final _authentificationService = AuthentificationService();
         bool isLargeScreen = constraints.maxWidth > 800;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF6F1F1),
+          backgroundColor: AppTheme.backgroundColor,
           body: Row(
             children: [
               if (isLargeScreen) Volet(),
@@ -175,7 +179,7 @@ class DashboardCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: AppTheme.titleTextStyle,
             ),
             const SizedBox(height: 16),
             child,
@@ -200,27 +204,22 @@ class MonCompteWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Solde :', style: TextStyle(fontSize: 16)),
+              Text('Solde :', style: AppTheme.subtitleTextStyle),
               Text(
                 solde,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: double.tryParse(solde.replaceAll('€', '').trim()) != null &&
-                          double.parse(solde.replaceAll('€', '').trim()) < 0
-                      ? Colors.red
-                      : Colors.green,
-                ),
+                style: AppTheme.getBalanceColorStyle(solde),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Center(
             child: ElevatedButton(
+              style: AppTheme.elevatedButtonStyle,
               onPressed: () {
                 Navigator.pushNamed(context, '/account');
               },
-              child: const Text('Voir le détail du compte'),
+              child: Text('Voir le détail du compte', style: AppTheme.buttonTextStyle),
+
             ),
           ),
         ],
@@ -240,14 +239,17 @@ class SignalementsWidget extends StatelessWidget {
       title: 'SIGNALEMENTS',
       child: Column(
         children: [
-          Text(statut, style: const TextStyle(fontSize: 16)),
+          Text(
+            statut, 
+            style: AppTheme.subtitleTextStyle),
           const SizedBox(height: 16),
           Center(
             child: ElevatedButton(
+              style: AppTheme.elevatedButtonStyle,
               onPressed: () {
                 Navigator.pushNamed(context, '/reports');
               },
-              child: const Text('+ Nouveau signalement'),
+              child: Text('+ Nouveau signalement', style: AppTheme.buttonTextStyle),
             ),
           ),
         ],
@@ -268,16 +270,17 @@ class ContacterGestionnaireWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Nom : ${gestionnaire.nom}', style: const TextStyle(fontSize: 16)),
+          Text('Nom : ${gestionnaire.nom}', style: AppTheme.subtitleTextStyle),
           const SizedBox(height: 8),
-          Text('Email : ${gestionnaire.mail}', style: const TextStyle(fontSize: 16)),
+          Text('Email : ${gestionnaire.mail}', style: AppTheme.subtitleTextStyle),
           const SizedBox(height: 16),
           Center(
             child: ElevatedButton(
+              style: AppTheme.elevatedButtonStyle,
               onPressed: () {
                 Navigator.pushNamed(context, '/messages');
               },
-              child: const Text('Contacter'),
+              child: Text('Contacter', style: AppTheme.buttonTextStyle),
             ),
           ),
         ],
