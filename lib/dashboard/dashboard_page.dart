@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:mon_app/login/auth_service.dart';
 import 'package:mon_app/models/gestionnaire.dart';
-import 'package:mon_app/dashboard/dashboard_service.dart'; // Service de gestionnaire avec Dio
+import 'package:mon_app/dashboard/dashboard_service.dart'; 
 import '../components/header.dart'; // Import du Header
 import '../components/volet.dart'; // Import du Volet
 import '../themes/eloca_theme.dart'; // Import du fichier de thème

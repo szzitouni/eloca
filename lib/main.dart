@@ -6,10 +6,11 @@ import 'login/login_page.dart';
 import 'dashboard/dashboard_page.dart';
 import 'messages/messages_page.dart';
 import 'reports/reports_page.dart';
+import 'themes/eloca_theme.dart'; // Ton fichier de thème personnalisé
 
 
 void main() {
-  runApp(const MyApp()); 
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -18,35 +19,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'eloca',
+      
       debugShowCheckedModeBanner: false, // Désactive le bandeau "debug"
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+      theme: AppTheme.themeData,
+      initialRoute: '/login', // Page initiale : LoginPage
+      routes: _routes, // Map des routes
+      onUnknownRoute: (settings) => MaterialPageRoute(
+        builder: (context) => const Scaffold(
+          body: Center(child: Text('Page non trouvée')),
+        ),
       ),
-      initialRoute: '/login',  // On démarre avec la page de connexion
-       onGenerateRoute: (settings) {
-        switch (settings.name) {
-
-          case '/login':
-            return MaterialPageRoute(builder: (context) => LoginPage());
-
-          case '/dashboard':
-          return MaterialPageRoute(builder: (context) => DashboardPage());
-          case '/messages':
-            return MaterialPageRoute(builder: (context) => MessagesPage());
-          case '/profil':
-            return MaterialPageRoute(builder: (context) => ProfilePage());
-          case '/account':
-            return MaterialPageRoute(builder: (context) => AccountPage());
-          case '/cgu':
-            return MaterialPageRoute(builder: (context) => CguPage());
-          case '/reports':
-            return MaterialPageRoute(builder: (context) => ReportsPage());
-          default:
-            return null; // Pour les routes inconnues
-        }
-      },
     );
   }
 }
+
+// Map des routes pour une gestion plus propre
+final Map<String, WidgetBuilder> _routes = {
+  '/login': (context) => LoginPage(),
+  '/dashboard': (context) => DashboardPage(),
+  '/messages': (context) => MessagesPage(),
+  '/profil': (context) => ProfilePage(),
+  '/account': (context) => AccountPage(),
+  '/cgu': (context) => CguPage(),
+  '/reports': (context) => ReportsPage(),
+};

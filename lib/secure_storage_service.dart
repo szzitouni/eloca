@@ -69,7 +69,7 @@ Future<String?> read(String key) async {
     // Lecture des données depuis le stockage
     print('Clé utilisée pour le stockage : ${Config.USER_CONTEXT_KEY}');
     final jsonString = await read(Config.USER_CONTEXT_KEY);
-    print('Données brutes récupérées du stockage : $jsonString');
+    //print('Données brutes récupérées du stockage : $jsonString');
 
     // Vérification si les données sont nulles
     if (jsonString == null) {

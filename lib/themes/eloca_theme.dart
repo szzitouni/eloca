@@ -77,14 +77,6 @@ class AppTheme {
     color: secondaryColor,
   );
 
-  // Méthode pour personnaliser la couleur du texte en fonction du solde
-  static TextStyle getBalanceColorStyle(String solde) {
-    final balance = double.tryParse(solde.replaceAll('€', '').trim());
-    return balance != null && balance < 0
-        ? balanceTextStyle.copyWith(color: negativeBalanceColor)
-        : balanceTextStyle.copyWith(color: positiveBalanceColor);
-  }
-
   // Styles pour les boutons
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: primaryColor, // Couleur de fond
@@ -108,7 +100,51 @@ class AppTheme {
     ),
   );
 
-  // Styles pour les cadres
+  // Méthode pour personnaliser la couleur du texte en fonction du solde
+  static TextStyle getBalanceColorStyle(String solde) {
+    final balance = double.tryParse(solde.replaceAll('€', '').trim());
+    return balance != null && balance < 0
+        ? balanceTextStyle.copyWith(color: negativeBalanceColor)
+        : balanceTextStyle.copyWith(color: positiveBalanceColor);
+  }
+
+  // Méthode pour récupérer ThemeData
+  static ThemeData get themeData {
+    return ThemeData(
+      // Couleurs
+      scaffoldBackgroundColor: backgroundColor, // Correcte
+      primaryColor: primaryColor,
+      colorScheme: ColorScheme.light(
+        primary: primaryColor,
+        secondary: secondaryColor, // Remplacement de accentColor par colorScheme.secondary
+      ),
+
+      // Text Styles
+      textTheme: const TextTheme(
+        titleLarge: titleTextStyle, // Utilisation de titleLarge au lieu de headline6
+        bodyMedium: generalTextStyle,
+        bodyLarge: preferencesTextStyle,
+        titleMedium: infoTextStyle,
+        labelLarge: buttonTextStyle,
+        titleSmall: subtitleTextStyle,
+      ),
+      appBarTheme: const AppBarTheme(
+        titleTextStyle: appBarTitleTextStyle,
+      ),
+      buttonTheme: const ButtonThemeData(
+        buttonColor: primaryColor,
+        textTheme: ButtonTextTheme.primary,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: elevatedButtonStyle,
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: outlinedButtonStyle,
+      ),
+    );
+  }
+
+  // Si tu veux utiliser popupMenuDecoration, assure-toi qu'elle est définie
   static final BoxDecoration popupMenuDecoration = BoxDecoration(
     border: Border.all(
       color: secondaryColor,
@@ -116,8 +152,4 @@ class AppTheme {
     ),
     borderRadius: BorderRadius.circular(5),
   );
-
-  // Dimensions globales
-  static const double appBarIconSize = 24.0;
-  static const double userIconSize = 20.0;
 }

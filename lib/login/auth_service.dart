@@ -14,25 +14,7 @@ class AuthentificationService {
   late bool isCollab;
   UserContext? userContext; /// remettre à late ? COMEBACK
 
-  // Getter pour userContext
-  // Future<UserContext?> get userContext async {
-  //   if (_userContext == null) {
-  //     final jsonString = await _secureStorage.read(USER_CONTEXT_KEY);
-     
-  //     // print('JSON b4 : \n\n\n $jsonString \n\n '); CHECK BoN Json
-      
-  //     if (jsonString != null) {
-  //       _userContext = UserContext.fromJson(json.decode(jsonString));
-       
-  //       // print('UserContext  : \n\n\n ${_userContext.toString()} \n\n '); Check Bon UC
 
-  //     }
-  //   }
-
-  //   return _userContext;
-  // }
-
-  //  Getter pour userContext
  
 
   // Setter pour userContext
@@ -65,7 +47,7 @@ Future<int> getIdProfil() async {
     }
 
     final idProfil = userContext.currentContext?.idProfil ?? 0;
-    print('ID PROFIL récupéré : $idProfil');
+    //print('ID PROFIL récupéré : $idProfil');
       // print('UserContext récupéré : ${context.toJson()}'); CHECK Bon UC
   //final idProfil = _userContext.currentContext?.idProfil ?? 0;
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mon_app/exceptions/badCurrentPwdException.dart';
 import 'package:mon_app/login/auth_service.dart';
+import 'package:mon_app/models/ChangerMdpDTO.dart';
 import 'package:mon_app/models/userContext.dart';
 import 'package:mon_app/profile/profile_service.dart';
 import '../components/header.dart'; // Import du Header
@@ -19,9 +21,15 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   final AuthentificationService authentificationService = AuthentificationService();
   final ProfileService profileService = ProfileService();
 
+  TextEditingController currentPasswordController = TextEditingController();
+  TextEditingController newPasswordController = TextEditingController();
+  TextEditingController confirmPasswordController = TextEditingController();
+
+
+
   UserContext? userContext;
   bool isLoadingPreferences = true;
-  bool receiveDocumentsByMail = false;
+  bool receiveDocumentsByPost = false;
   bool viewDocumentsOnlineOnly = false;
 
   @override
@@ -30,6 +38,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     _tabController = TabController(length: 4, vsync: this);
     loadUserContext();
     loadDematerialisationStatus();
+    
   }
 
   @override
@@ -55,7 +64,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       final status = await profileService.getDematerialisationStatus();
       setState(() {
         if (status) {
-          receiveDocumentsByMail = true;
+          receiveDocumentsByPost = true;
         } else {
           viewDocumentsOnlineOnly = true;
         }
@@ -79,7 +88,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         bool isLargeScreen = constraints.maxWidth > 800;
 
         return Scaffold(
-          backgroundColor: AppTheme.backgroundColor,
+          backgroundColor: AppTheme.backgroundColor, // Utilisation de la couleur de fond définie dans le thème
           body: Row(
             children: [
               if (isLargeScreen) const Volet(), // Barre latérale pour grands écrans
@@ -130,8 +139,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             child: TabBar(
               controller: _tabController,
               isScrollable: true,
-              labelColor: AppTheme.secondaryColor,
-              indicatorColor: AppTheme.primaryColor,
+              labelColor: AppTheme.secondaryColor, // Utilisation de la couleur secondaire du thème
+              indicatorColor: AppTheme.primaryColor, // Utilisation de la couleur primaire du thème
               tabs: const [
                 Tab(text: 'Informations générales'),
                 Tab(text: 'Mes préférences'),
@@ -198,7 +207,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         children: [
           Text(
             'Documents de gestion, je souhaite :',
-            style: AppTheme.generalTextStyle.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
+            style: AppTheme.generalTextStyle.copyWith(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 10),
           CheckboxListTile(
@@ -207,18 +219,18 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             onChanged: (bool? value) {
               setState(() {
                 viewDocumentsOnlineOnly = value ?? false;
-                if (viewDocumentsOnlineOnly) receiveDocumentsByMail = false;
+                if (viewDocumentsOnlineOnly) receiveDocumentsByPost = false;
               });
             },
             controlAffinity: ListTileControlAffinity.leading,
           ),
           CheckboxListTile(
-            value: receiveDocumentsByMail,
+            value: receiveDocumentsByPost,
             title: const Text('Les recevoir en plus par courrier postal'),
             onChanged: (bool? value) {
               setState(() {
-                receiveDocumentsByMail = value ?? false;
-                if (receiveDocumentsByMail) viewDocumentsOnlineOnly = false;
+                receiveDocumentsByPost = value ?? false;
+                if (receiveDocumentsByPost) viewDocumentsOnlineOnly = false;
               });
             },
             controlAffinity: ListTileControlAffinity.leading,
@@ -226,36 +238,266 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           const SizedBox(height: 20),
           Center(
             child: ElevatedButton(
-              onPressed: () {
-                if (viewDocumentsOnlineOnly || receiveDocumentsByMail) {
-                  print('Préférences sauvegardées :');
-                  print('  - Consultation en ligne : $viewDocumentsOnlineOnly');
-                  print('  - Réception par courrier : $receiveDocumentsByMail');
+              onPressed: () async {
+                setState(() {
+                  isLoadingPreferences = true; // Activer le chargement
+                });
+
+                try {
+                  // Appel asynchrone pour sauvegarder les préférences
+                  final isPaper = await profileService.changeDematerialisationStatus(receiveDocumentsByPost);
+
+                  setState(() {
+                    receiveDocumentsByPost = isPaper;
+                    viewDocumentsOnlineOnly = !isPaper;
+                  });
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Préférences enregistrées avec succès.')),
                   );
-                } else {
+                } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Veuillez sélectionner au moins une option.')),
+                    SnackBar(content: Text('Erreur : ${e.toString()}')),
                   );
+                } finally {
+                  setState(() {
+                    isLoadingPreferences = false; // Désactiver le chargement
+                  });
                 }
               },
-              child: const Text('Enregistrer'),
+              style: AppTheme.elevatedButtonStyle, // Utilisation du style défini
+              child: isLoadingPreferences
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Enregistrer'),
             ),
+
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPasswordSettings() {
-    return Center(
-      child: Text(
-        'Section pour changer le mot de passe',
-        style: AppTheme.generalTextStyle.copyWith(fontSize: 18),
-      ),
+
+Widget _buildPasswordSettings() {
+  // États pour gérer l'affichage/cachage des mots de passe
+  ValueNotifier<bool> showCurrentPassword = ValueNotifier<bool>(false);
+  ValueNotifier<bool> showNewPassword = ValueNotifier<bool>(false);
+  ValueNotifier<bool> showConfirmPassword = ValueNotifier<bool>(false);
+
+  // États pour suivre les critères de mot de passe
+  ValueNotifier<bool> hasMinLength = ValueNotifier<bool>(false);
+  ValueNotifier<bool> hasUpperLower = ValueNotifier<bool>(false);
+  ValueNotifier<bool> hasNumber = ValueNotifier<bool>(false);
+  ValueNotifier<bool> hasSpecialChar = ValueNotifier<bool>(false);
+
+
+  // Fonction pour valider les critères
+  void validatePassword(String password) {
+    hasMinLength.value = password.length >= 12;
+    hasUpperLower.value = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])').hasMatch(password);
+    hasNumber.value = RegExp(r'\d').hasMatch(password);
+    hasSpecialChar.value = RegExp(r'[!@#$€%^&*()_+\-=\[\]{}\"\\|,.<>\/?]').hasMatch(password);
+  }
+
+  void submitPasswordChangingRequest(String currentPassword,String newPassword, String confirmPassword) async {
+  // Comparaison entre le mot de passe et sa confirmation 
+  if (newPassword != confirmPassword) {
+    ScaffoldMessenger.of(context).showSnackBar( const SnackBar(content: Text('Les mots de passe ne correspondent pas !')));
+     return;
+  }
+
+  // Vérification des critères de sécurité du (des) mot de passe
+  if (hasSpecialChar.value && hasUpperLower.value && hasNumber.value && hasMinLength.value) {
+
+     final changerMdpDTO = ChangerMdpDTO(
+      ancienMotDePasse: currentPassword,
+      motDePasse: newPassword,
+      confirmPassword: confirmPassword,
+    );
+    try {
+      // /password
+      await  profileService.modifierMDP(changerMdpDTO);
+       ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Mot de passe modifié avec succès !')),
+    );
+       
+  }
+  catch(exception){
+    print(exception);
+    if(exception is BadCurrentPwdException){
+      ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Mot de passe actuel incorrect :)  ')),
+    );
+
+    }else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Petite exception sypatoche ')),
     );
   }
+  }
+
+   
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Le mot de passe ne respecte pas les critères !')),
+    );
+  }
+}
+  return SingleChildScrollView(
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Titre
+          const Text(
+            'Modifier mon mot de passe',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          // Description
+          const Text(
+            'Indiquez votre mot de passe actuel afin de pouvoir le modifier',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          SizedBox(height: 16),
+
+          // Mot de passe actuel
+          ValueListenableBuilder<bool>(
+            valueListenable: showCurrentPassword,
+            builder: (context, isVisible, _) {
+              return TextFormField(
+                controller:currentPasswordController,
+                obscureText: !isVisible,
+                decoration: InputDecoration(
+                  labelText: 'Mot de passe actuel',
+                  border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(isVisible ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () => showCurrentPassword.value = !isVisible,
+                  ),
+                ),
+              );
+            },
+          ),
+          SizedBox(height: 16),
+
+          // Nouveau mot de passe
+          Text(
+            'Choisissez votre nouveau mot de passe',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          SizedBox(height: 8),
+          
+          ValueListenableBuilder<bool>( 
+            valueListenable: showNewPassword,
+            builder: (context, isVisible, _) {
+              return TextFormField(
+                controller: newPasswordController, // Utilisation du contrôleur
+                obscureText: !isVisible,
+                onChanged: validatePassword, // Appelle la fonction de validation
+                decoration: InputDecoration(
+                  labelText: 'Nouveau mot de passe',
+                  border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(isVisible ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () => showNewPassword.value = !isVisible,
+                  ),
+                ),
+              );
+            },
+          ),
+          SizedBox(height: 16),
+
+          // Critères de mot de passe
+          const Text(
+            'Pour la sécurité de vos données personnelles, merci de respecter les critères ci-dessous :',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          SizedBox(height: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildDynamicCriteria(hasMinLength, 'Au moins 12 caractères'),
+              buildDynamicCriteria(hasUpperLower, 'Au moins une majuscule et une minuscule'),
+              buildDynamicCriteria(hasNumber, 'Au moins 1 chiffre'),
+              buildDynamicCriteria(hasSpecialChar, 'Au moins 1 caractère spécial (ex: # @ & " ? ! \$ ...)'),
+            ],
+          ),
+          SizedBox(height: 16),
+
+          // Confirmer le mot de passe
+          ValueListenableBuilder<bool>(
+            valueListenable: showConfirmPassword,
+            builder: (context, isVisible, _) {
+              return TextFormField(
+                controller: confirmPasswordController, // Utilisation du contrôleur
+                obscureText: !isVisible,
+                decoration: InputDecoration(
+                  labelText: 'Confirmer le mot de passe',
+                  border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(isVisible ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () => showConfirmPassword.value = !isVisible,
+                  ),
+                ),
+              );
+            },
+          ),
+          SizedBox(height: 24),
+
+          // Bouton Enregistrer
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                submitPasswordChangingRequest(
+                  currentPasswordController.text,
+                  newPasswordController.text,
+                  confirmPasswordController.text
+                );              
+              },
+              child: Text('Enregistrer'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// Widget pour afficher une ligne de critère dynamique
+Widget buildDynamicCriteria(ValueNotifier<bool> criteriaNotifier, String text) {
+  return ValueListenableBuilder<bool>(
+    valueListenable: criteriaNotifier,
+    builder: (context, isValid, _) {
+      return Row(
+        children: [
+          Icon(
+            isValid ? Icons.check_circle : Icons.circle_outlined,
+            color: isValid ? Colors.green : Colors.grey,
+            size: 20,
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                color: isValid ? Colors.green : Colors.grey,
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+
 
   Widget _buildCookieSettings() {
     return Center(

@@ -1,0 +1,18 @@
+{
+    "general" : {
+        "save":"Enregistrer"
+    },
+    "profile ":{
+        "name": "Nom et Prénoms  ",
+        "adress":"Adresse Postale",
+        "mail":"Adresse e-mail",
+
+        "preferences": "Documents de gestion, je souhaite :",
+        "online_choice": "Les consulter uniquement depuis mon espace client (web/app)",
+        "post_choice": "Les recevoir en plus par courrier postal",
+
+
+        "test":"test"
+    }
+
+}
